@@ -1,25 +1,32 @@
 package spotify.playlist_generator;
 
-import java.net.URI;
+import java.io.IOException;
 
 import com.wrapper.spotify.SpotifyApi;
-import com.wrapper.spotify.requests.authorization.authorization_code.AuthorizationCodeRequest;
-import com.wrapper.spotify.requests.authorization.authorization_code.AuthorizationCodeUriRequest;
+import com.wrapper.spotify.model_objects.miscellaneous.CurrentlyPlaying;
+import com.wrapper.spotify.requests.data.player.GetUsersCurrentlyPlayingTrackRequest;
 
-/**
- * Hello world!
- *
- */
+import authorization.Authenticator;
+
 public class App {
 
-	private static final SpotifyApi api = new SpotifyApi.Builder().setClientId("dfaef265d1624a78810ee848076a1eb6")
-			.setClientSecret("a7600d7a65b843278af6294571e80bca").build();
-	
-	private static final AuthorizationCodeUriRequest request = api.authorizationCodeUri().show_dialog(false).build();
+    public static void main(String[] args) throws Exception{
+        try {
+            Server server = new Server(8080);
+        } catch (IOException e) {
+            System.out.println("didn't make a server");
+        }
+        new Authenticator(8080);
+        //Authenticator.authorizationCodeUri_Sync();
+        //execute();
+    }
+    
+    /*static void execute () throws Exception{
+        Authenticator.authorizationCode_Sync();
+        SpotifyApi api = Authenticator.getApi();
+        GetUsersCurrentlyPlayingTrackRequest out = api.getUsersCurrentlyPlayingTrack().build();
+        CurrentlyPlaying c = out.execute();
+        System.out.println(c.getItem().getName());
+    }*/
 
-	public static void main(String[] args) {
-		final URI uri = request.execute();
-
-	    System.out.println("URI: " + uri.toString());
-	}
 }

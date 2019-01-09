@@ -27,5 +27,20 @@
 			<artifactId>spotify-web-api-java</artifactId>
 			<version>2.1.2</version>
 		</dependency>
+		<dependency>
+			<groupId>org.nanohttpd</groupId>
+			<artifactId>nanohttpd</artifactId>
+			<version>2.3.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.seleniumhq.selenium</groupId>
+			<artifactId>selenium-java</artifactId>
+			<version>3.141.59</version>
+		</dependency>
+		<dependency>
+			<groupId>org.seleniumhq.selenium</groupId>
+			<artifactId>selenium-chrome-driver</artifactId>
+			<version>3.141.59</version>
+		</dependency>
 	</dependencies>
 </project>
