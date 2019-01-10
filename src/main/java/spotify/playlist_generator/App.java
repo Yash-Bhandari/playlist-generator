@@ -26,8 +26,8 @@ public class App {
         initServer();
 
         SpotifyApi api = new Authenticator(8080).getApi();
-        //createPlaylistsFromLocal(api, 90, 3, "SavedFiles/songs.txt");
-        createPlaylists(api, 90, 1, 5100);
+        createPlaylistsFromLocal(api, 200, 1, "SavedFiles/songs.txt");
+        // createPlaylists(api, 200, 1, 5100);
         // printSong(api);
         // createPlaylist(api, 5100, 100);
         /*
@@ -61,17 +61,23 @@ public class App {
             for (SavedTrack s : api.getUsersSavedTracks().limit(50).offset(50 * i).build().execute().getItems())
                 songs.add(s.getTrack());
         }
-        System.out.println(songs.size());
         saveAll(songs);
         Collections.shuffle(songs);
+        int numRequests = (playlistSize / 90) + 1; // 90 is the number of songs that can be requested at a time
+
         for (int j = 0; j < numPlaylists; j++) {
             if ((j + 1) * playlistSize > songs.size())
                 break;
             Playlist p = api.createPlaylist("LegCheese", "auto" + (j + 1)).build().execute();
-            String[] playlistSongs = new String[playlistSize];
-            for (int i = 0; i < playlistSize; i++)
-                playlistSongs[i] = songs.get(j * playlistSize + i).getUri();
-            api.addTracksToPlaylist(p.getId(), playlistSongs).build().execute();
+            int index = 0;
+            while (index < playlistSize) {
+                int batchSize = playlistSize - index >= 90 ? 90 : playlistSize - index;
+                String[] batch = new String[batchSize];
+                for (int i = 0; i < batch.length; i++)
+                    batch[i] = songs.get(j * playlistSize + index + i).getUri();
+                api.addTracksToPlaylist(p.getId(), batch).build().execute();
+                index += batchSize;
+            }
         }
     }
 
@@ -88,10 +94,15 @@ public class App {
             if ((j + 1) * playlistSize > songs.size())
                 break;
             Playlist p = api.createPlaylist("LegCheese", "auto" + (j + 1)).build().execute();
-            String[] playlistSongs = new String[playlistSize];
-            for (int i = 0; i < playlistSize; i++)
-                playlistSongs[i] = songs.get(j * playlistSize + i);
-            api.addTracksToPlaylist(p.getId(), playlistSongs).build().execute();
+            int index = 0;
+            while (index < playlistSize) {
+                int batchSize = playlistSize - index >= 90 ? 90 : playlistSize - index;
+                String[] batch = new String[batchSize];
+                for (int i = 0; i < batch.length; i++)
+                    batch[i] = songs.get(j * playlistSize + index + i);
+                api.addTracksToPlaylist(p.getId(), batch).build().execute();
+                index += batchSize;
+            }
         }
     }
 
