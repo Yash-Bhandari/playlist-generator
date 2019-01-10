@@ -33,7 +33,12 @@ public class Authenticator {
         String authorizationCode = "";
         WebDriver driver = new ChromeDriver();
         driver.get(getRequestUrl());
-        driver.findElement((By.id("login-username"))).sendKeys("LegCheese");
+        /*
+         * driver.findElement((By.id("login-username"))).sendKeys("username");
+         * driver.findElement((By.id("login-password"))).sendKeys("password");
+         * driver.findElement(By.id("login-button")).click();
+         * driver.findElement(By.id("auth-accept")).click();
+         */
         while (!driver.getCurrentUrl().substring(0, redirectUri.toString().length()).equals(redirectUri.toString())) {
             Thread.sleep(1000);
         }
@@ -48,7 +53,8 @@ public class Authenticator {
 
     // Gets the url the user is sent to to login to Spotify
     public String getRequestUrl() {
-        final AuthorizationCodeUriRequest uriRequest = api.authorizationCodeUri().scope(scope).show_dialog(true).build();
+        final AuthorizationCodeUriRequest uriRequest = api.authorizationCodeUri().scope(scope).show_dialog(true)
+                .build();
         final URI uri = uriRequest.execute();
         System.out.println("URI: " + uri.toString());
         return uri.toString();
