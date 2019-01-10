@@ -1,13 +1,16 @@
 package spotify.playlist_generator;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 
-import com.google.gson.JsonArray;
+import org.apache.commons.codec.binary.StringUtils;
+
 import com.wrapper.spotify.SpotifyApi;
 import com.wrapper.spotify.model_objects.miscellaneous.CurrentlyPlaying;
 import com.wrapper.spotify.model_objects.specification.Playlist;
@@ -23,8 +26,15 @@ public class App {
         initServer();
 
         SpotifyApi api = new Authenticator(8080).getApi();
+        createPlaylistFromLocal(api, 5100, 10, "SavedFiles/songs.txt");
         // printSong(api);
-        createPlaylist(api, 5100, 100);
+        // createPlaylist(api, 5100, 100);
+        /*
+         * Playlist p = api.createPlaylist("LegCheese", "auto1").build().execute();
+         * System.out.println(p.getId()); String[] temp = {
+         * "spotify:track:7LRMbd3LEoV5wZJvXT1Lwb" }; api.addTracksToPlaylist(p.getId(),
+         * temp).build().execute();
+         */
     }
 
     private static void initServer() {
@@ -42,23 +52,40 @@ public class App {
 
     }
 
-    private static void createPlaylist(SpotifyApi api, int numSavedSongs, int playlistSize) throws Exception {
+    private static void createPlaylist(SpotifyApi api, int playlistSize) throws Exception {
         Playlist p = api.createPlaylist("LegCheese", "auto1").build().execute();
         ArrayList<Track> songs = new ArrayList<Track>();
         for (int i = 0; i < 5100 / 50; i++) {
             System.out.println("Accessed " + i * 50 + " songs");
-            for (SavedTrack s : api.getUsersSavedTracks().limit(50).offset(50*i).build().execute().getItems()) 
+            for (SavedTrack s : api.getUsersSavedTracks().limit(50).offset(50 * i).build().execute().getItems())
                 songs.add(s.getTrack());
         }
         saveAll(songs);
         Collections.shuffle(songs);
-        JsonArray songUris = new JsonArray(playlistSize); 
-        for (int i = 0; i < playlistSize; i++) 
-            songUris.add(songs.get(i));
-        //api.addTracksToPlaylist(p.getId(), new JsonArray(100).add(element);)
-        //AddTracksToPlaylistRequest add = api.addTracksToPlaylist
+        String[] playlistSongs = new String[playlistSize];
+        for (int i = 0; i < playlistSize; i++)
+            playlistSongs[i] = songs.get(i).getUri();
+        api.addTracksToPlaylist(p.getId(), playlistSongs).build().execute();
+        // api.addTracksToPlaylist(p.getId(), new JsonArray(100).add(element);)
+        // AddTracksToPlaylistRequest add = api.addTracksToPlaylist
     }
-    
+
+    private static void createPlaylistFromLocal(SpotifyApi api, int numSavedSongs, int playlistSize, String savePath)
+            throws Exception {
+        Playlist p = api.createPlaylist("LegCheese", "auto1").build().execute();
+        ArrayList<String> songs = new ArrayList<String>();
+        for (String URI : readURIs(savePath))
+            songs.add(URI);
+        Collections.shuffle(songs);
+        String[] playlistSongs = new String[playlistSize];
+        for (int i = 0; i < playlistSize; i++)
+            playlistSongs[i] = songs.get(i);
+
+        api.addTracksToPlaylist(p.getId(), playlistSongs).build().execute();
+        // api.addTracksToPlaylist(p.getId(), new JsonArray(100).add(element);)
+        // AddTracksToPlaylistRequest add = api.addTracksToPlaylist
+    }
+
     private static void saveAll(ArrayList<Track> songs) {
         String[] toSave = new String[songs.size()];
         for (int i = 0; i < songs.size(); i++) {
@@ -70,19 +97,35 @@ public class App {
         }
         save(toSave, "Songs.txt");
     }
-    
+
     private static <T> void save(T[] toSave, String fileName) {
         try {
-        BufferedWriter writer = new BufferedWriter(new FileWriter(new File("SavedFiles/" + fileName)));
-        for (int i = 0; i < toSave.length; i++) {
-            writer.write (toSave[i].toString());
-            if (i % 500 == 0) System.out.println("Saved " + i);
-        }
-        writer.close();
+            BufferedWriter writer = new BufferedWriter(new FileWriter(new File("SavedFiles/" + fileName)));
+            for (int i = 0; i < toSave.length; i++) {
+                writer.write(toSave[i].toString());
+                if (i % 500 == 0)
+                    System.out.println("Saved " + i);
+            }
+            writer.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-    
+
+    private static String[] readURIs(String path) {
+        try {
+            ArrayList<String> URIs = new ArrayList<String>();
+            BufferedReader reader = new BufferedReader(new FileReader(new File(path)));
+            String s;
+            while ((s = reader.readLine()) != null) {
+                URIs.add(s.substring(s.indexOf("spotify:track")));
+            }
+            reader.close();
+            return URIs.toArray(new String[URIs.size()]);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
 }
