@@ -1,11 +1,8 @@
 package spotify.playlist_generator;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.util.List;
 import java.util.Map;
 
-import authorization.Authenticator;
 import fi.iki.elonen.NanoHTTPD;
 
 
@@ -19,7 +16,7 @@ public class Server extends NanoHTTPD{
     
    @Override
    public Response serve(IHTTPSession session) {
-       String msg = "<html><body><h1>Creating a playlist for you</h1>\n";
+       String msg = "<html><body><h1>hey there big guy, making some playlists for you right now</h1>\n";
        Map<String, String> parms = session.getParms();
        if (parms.get("username") == null) {
            //msg += "<form action='?' method='get'>\n  <p>Your name: <input type='text' name='username'></p>\n" + "</form>\n";
