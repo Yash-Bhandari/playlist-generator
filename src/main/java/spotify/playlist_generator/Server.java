@@ -19,7 +19,7 @@ public class Server extends NanoHTTPD{
     
    @Override
    public Response serve(IHTTPSession session) {
-       String msg = "<html><body><h1>Hey there big boy</h1>\n";
+       String msg = "<html><body><h1>Creating a playlist for you</h1>\n";
        Map<String, String> parms = session.getParms();
        if (parms.get("username") == null) {
            //msg += "<form action='?' method='get'>\n  <p>Your name: <input type='text' name='username'></p>\n" + "</form>\n";

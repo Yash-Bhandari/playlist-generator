@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.Future;
 
+import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 
@@ -19,24 +20,24 @@ public class Authenticator {
     private final URI redirectUri;
     private final String clientId = "dfaef265d1624a78810ee848076a1eb6";
     private final String clientSecret = "a7600d7a65b843278af6294571e80bca";
+    private final String scope = "user-read-currently-playing,user-read-currently-playing,playlist-modify-private,playlist-modify-public,user-library-read";
     private final SpotifyApi api;
     private final AuthorizationCodeRequest codeRequest;
 
-    public Authenticator(int port) {
+    public Authenticator(int port) throws InterruptedException {
         this.port = port;
         redirectUri = SpotifyHttpManager.makeUri("http://localhost:" + port + "/");
         api = new SpotifyApi.Builder().setClientId(clientId).setClientSecret(clientSecret).setRedirectUri(redirectUri)
                 .build();
-        
+
         String authorizationCode = "";
         WebDriver driver = new ChromeDriver();
         driver.get(getRequestUrl());
-        try {
-            Thread.sleep(10000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        driver.findElement((By.id("login-username"))).sendKeys("LegCheese");
+        while (!driver.getCurrentUrl().substring(0, redirectUri.toString().length()).equals(redirectUri.toString())) {
+            Thread.sleep(1000);
         }
-        System.out.println("done waiting");
+
         System.out.println(driver.getCurrentUrl());
         String url = driver.getCurrentUrl();
         url = url.substring(url.indexOf('=') + 1);
@@ -45,15 +46,14 @@ public class Authenticator {
         authorizationCode_Sync();
     }
 
-    //Gets the url the user is sent to to login to Spotify
+    // Gets the url the user is sent to to login to Spotify
     public String getRequestUrl() {
-        final AuthorizationCodeUriRequest uriRequest = api.authorizationCodeUri()
-                .scope("user-read-currently-playing,user-read-currently-playing").show_dialog(true).build();
+        final AuthorizationCodeUriRequest uriRequest = api.authorizationCodeUri().scope(scope).show_dialog(true).build();
         final URI uri = uriRequest.execute();
         System.out.println("URI: " + uri.toString());
         return uri.toString();
     }
-    
+
     public void authorizationCode_Sync() {
         try {
             final AuthorizationCodeCredentials credentials = codeRequest.execute();
@@ -68,15 +68,12 @@ public class Authenticator {
         }
     }
 
-    /*public void authorizationCodeUri_Async() {
-        try {
-            final Future<URI> uriFuture = uriRequest.executeAsync();
-            final URI uri = uriFuture.get();
-            System.out.println("URI: " + uri.toString());
-        } catch (Exception e) {
-            System.out.println("Error: " + e.getCause().getMessage());
-        }
-    }*/
+    /*
+     * public void authorizationCodeUri_Async() { try { final Future<URI> uriFuture
+     * = uriRequest.executeAsync(); final URI uri = uriFuture.get();
+     * System.out.println("URI: " + uri.toString()); } catch (Exception e) {
+     * System.out.println("Error: " + e.getCause().getMessage()); } }
+     */
 
     public SpotifyApi getApi() {
         return api;
